@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "legacy-to-lakehouse-copilot"
+version = "0.1.0"
+description = "Deterministic multi-agent LangGraph system migrating legacy SQL to Medallion PySpark"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "langgraph>=0.2.20",
+    "langchain-core>=0.3.0",
+    "sqlglot>=25.20.0",
+    "duckdb>=1.1.0",
+    "networkx>=3.4.0",
+    "jinja2>=3.1.4",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.5.0",
+    "pyyaml>=6.0.2",
+    "python-dotenv>=1.0.0",
+    "rich>=13.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+]
+llm = [
+    "langchain-google-genai>=2.0.0",
+    "langchain-openai>=0.2.0",
+    "langchain-community>=0.3.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+pythonpath = ["."]

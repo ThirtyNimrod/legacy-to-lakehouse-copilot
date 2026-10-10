@@ -1,0 +1,14 @@
+app:
+  name: "legacy-to-lakehouse-copilot"
+  max_retries: 3
+  epsilon_tolerance: 1e-6
+
+database:
+  legacy_path: "data/legacy/legacy_warehouse.duckdb"
+  target_path: "data/medallion/lakehouse_medallion.duckdb"
+  checkpoint_path: "checkpoints.db"
+
+llm:
+  provider: "mock" # options: gemini, openai, ollama, mock
+  model_name: "mock"
+  temperature: 0.1
