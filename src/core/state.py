@@ -52,9 +52,15 @@ class MigrationState(TypedDict):
     lineage_graph: Dict[str, TableLineage]       # NetworkX-compatible adjacency mapping
     execution_order: List[str]                   # Topologically sorted table list
 
+    # Multi-Table Pipeline Queue
+    pending_tables: List[str]                    # Unmigrated tables remaining in execution order
+    completed_tables: List[str]                  # Tables successfully validated and promoted
+    staging_entity: str                          # Current active staging table name
+
     # Active Migration Workspace
     current_table: str                           # Active table under migration
     artifacts: Dict[str, CodeArtifact]           # Layer -> Generated PySpark artifacts
+    active_salt: str                             # Salt for PII hashing
 
     # Verification & Error Recovery
     validation_metrics: List[ParityMetric]

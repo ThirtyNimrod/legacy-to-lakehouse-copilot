@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEGACY-TO-LAKEHOUSE // OPERATOR CONSOLE</title>
+  <!-- Google Fonts: Doto (Display/Hero), Space Grotesk (UI/Body), Space Mono (Data/Labels) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==========================================================================
+       NOTHING DESIGN SYSTEM TOKENS (v3.0.0)
+       ========================================================================== */
+    :root {
+      /* Dark Mode Palette (OLED Black) */
+      --black: #000000;
+      --surface: #111111;
+      --surface-raised: #1A1A1A;
+      --border: #222222;
+      --border-visible: #333333;
+      
+      --text-disabled: #666666;
+      --text-secondary: #999999;
+      --text-primary: #E8E8E8;
+      --text-display: #FFFFFF;
+      
+      --accent: #D71921; /* Mechanical Signal Red */
+      --accent-subtle: rgba(215, 25, 33, 0.15);
+      --success: #4A9E5C;
+      --warning: #D4A843;
+      --interactive: #5B9BF6;
+      
+      /* Spacing Scale (8px Base) */
+      --space-2xs: 2px;
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --space-2xl: 48px;
+      
+      /* Fonts */
+      --font-display: 'Doto', 'Space Mono', monospace;
+      --font-body: 'Space Grotesk', system-ui, sans-serif;
+      --font-mono: 'Space Mono', monospace;
+      
+      --grid-dot-color: var(--border-visible);
+    }
+
+    [data-theme="light"] {
+      /* Light Mode Palette (Technical Off-White Paper) */
+      --black: #F5F5F5;
+      --surface: #FFFFFF;
+      --surface-raised: #ECECEC;
+      --border: #E0E0E0;
+      --border-visible: #CCCCCC;
+      
+      --text-disabled: #999999;
+      --text-secondary: #666666;
+      --text-primary: #1A1A1A;
+      --text-display: #000000;
+      
+      --accent: #D71921;
+      --accent-subtle: rgba(215, 25, 33, 0.08);
+      --success: #367A44;
+      --warning: #B38622;
+      --interactive: #007AFF;
+      
+      --grid-dot-color: #DDDDDD;
+    }
+
+    /* Base Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--black);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Dot-Matrix Grid Background */
+    .dot-grid {
+      background-image: radial-gradient(circle, var(--grid-dot-color) 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+
+    /* ==========================================================================
+       TYPOGRAPHY STYLES
+       ========================================================================== */
+    .label-caps {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      line-height: 1.2;
+    }
+
+    .hero-number {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 48px;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      color: var(--text-display);
+    }
+
+    .hero-sub {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 28px;
+      line-height: 1.1;
+      color: var(--text-display);
+    }
+
+    /* ==========================================================================
+       CONTAINERS & LAYOUT
+       ========================================================================== */
+    .app-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      flex: 1;
+    }
+
+    /* Top Telemetry Header */
+    header.system-bar {
+      border: 1px solid var(--border-visible);
+      background-color: var(--surface);
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-md);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-display);
+      letter-spacing: -0.01em;
+    }
+
+    .system-meta-strip {
+      display: flex;
+      gap: var(--space-lg);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2xs);
+    }
+
+    .meta-val {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-display);
+    }
+
+    /* Segmented Control / Theme Switcher */
+    .segmented-control {
+      display: inline-flex;
+      border: 1px solid var(--border-visible);
+      padding: 2px;
+      background: transparent;
+    }
+
+    .segmented-btn {
+      background: transparent;
+      border: none;
+      padding: 6px 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease-out;
+    }
+
+    .segmented-btn.active {
+      background: var(--text-display);
+      color: var(--black);
+      font-weight: 700;
+    }
+
+    /* ==========================================================================
+       PIPELINE DAG VISUALIZER (LANGGRAPH MULTI-AGENT STATE MACHINE)
+       ========================================================================== */
+    .dag-section {
+      border: 1px solid var(--border-visible);
+      background-color: var(--surface);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .dag-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nodes-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: var(--space-sm);
+      position: relative;
+    }
+
+    @media (max-width: 1024px) {
+      .nodes-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .nodes-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .dag-node {
+      border: 1px solid var(--border);
+      background-color: var(--surface-raised);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      position: relative;
+      transition: border-color 0.2s ease-out;
+    }
+
+    .dag-node.active {
+      border-color: var(--text-display);
+      background-color: var(--surface);
+    }
+
+    .dag-node.halted {
+      border-color: var(--accent);
+      background-color: var(--accent-subtle);
+    }
+
+    .dag-node.completed {
+      border-color: var(--border-visible);
+    }
+
+    .node-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--text-disabled);
+      display: inline-block;
+    }
+
+    .node-status-dot.active {
+      background-color: var(--text-display);
+      box-shadow: 0 0 6px var(--text-display);
+    }
+
+    .node-status-dot.gate {
+      background-color: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse-gate 1.2s infinite ease-in-out;
+    }
+
+    .node-status-dot.success {
+      background-color: var(--success);
+    }
+
+    @keyframes pulse-gate {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .node-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-display);
+    }
+
+    .node-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+
+    /* ==========================================================================
+       MAIN WORKSPACE (SPLIT PANE: METRICS & ARTIFACTS)
+       ========================================================================== */
+    .workspace-split {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: var(--space-md);
+      flex: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace-split {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      border: 1px solid var(--border-visible);
+      background-color: var(--surface);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      padding: var(--space-md) var(--space-lg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-body {
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+      flex: 1;
+    }
+
+    /* Segmented Progress Bar (Nothing Mechanical Blocks) */
+    .seg-progress-container {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .seg-progress-bar {
+      display: flex;
+      gap: 2px;
+      height: 12px;
+      width: 100%;
+    }
+
+    .seg-block {
+      flex: 1;
+      background-color: var(--border);
+      height: 100%;
+    }
+
+    .seg-block.filled-pass {
+      background-color: var(--text-display);
+    }
+
+    .seg-block.filled-gate {
+      background-color: var(--accent);
+    }
+
+    /* Data List & Stat Rows */
+    .stat-row-group {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px var(--space-md);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-row-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .stat-row-value {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .val-success {
+      color: var(--success);
+    }
+
+    .val-accent {
+      color: var(--accent);
+    }
+
+    .chip {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border: 1px solid var(--border-visible);
+      color: var(--text-primary);
+      display: inline-block;
+    }
+
+    .chip-accent {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .chip-success {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    /* Code / Markdown Studio Tabs */
+    .tab-strip {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background-color: var(--surface-raised);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 10px 18px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+      transition: background 0.15s ease-out;
+    }
+
+    .tab-btn.active {
+      background-color: var(--surface);
+      color: var(--text-display);
+      font-weight: 700;
+      border-bottom: 2px solid var(--text-display);
+    }
+
+    .code-editor-mock {
+      background-color: var(--black);
+      border: 1px solid var(--border);
+      padding: var(--space-md);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      overflow-x: auto;
+      white-space: pre;
+      max-height: 280px;
+    }
+
+    /* ==========================================================================
+       HUMAN APPROVAL GATE (INTERRUPT RESOLUTION BAR)
+       ========================================================================== */
+    .hitl-gate-bar {
+      border: 1px solid var(--accent);
+      background-color: var(--surface);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      position: relative;
+    }
+
+    .gate-headline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+    }
+
+    .gate-signal {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .gate-actions {
+      display: flex;
+      gap: var(--space-md);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Buttons: Nothing Pill Spec */
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      min-height: 44px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease-out;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background-color: var(--text-display);
+      color: var(--black);
+      border: none;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.85;
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--border-visible);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-display);
+    }
+
+    .btn-destructive {
+      background-color: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .btn-destructive:hover {
+      background-color: var(--accent-subtle);
+    }
+
+    /* Feedback Input Drawer */
+    .feedback-drawer {
+      border-top: 1px solid var(--border);
+      padding-top: var(--space-md);
+      display: none;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .feedback-drawer.open {
+      display: flex;
+    }
+
+    .text-input {
+      background-color: var(--surface-raised);
+      border: 1px solid var(--border-visible);
+      color: var(--text-display);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 12px var(--space-md);
+      outline: none;
+      width: 100%;
+    }
+
+    .text-input:focus {
+      border-color: var(--text-display);
+    }
+
+    /* ==========================================================================
+       TECHNICAL LOG STREAM (SPACE MONO CONSOLE)
+       ========================================================================== */
+    .telemetry-console {
+      border: 1px solid var(--border-visible);
+      background-color: var(--black);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .log-line {
+      display: flex;
+      gap: var(--space-md);
+      line-height: 1.4;
+    }
+
+    .log-ts {
+      color: var(--text-disabled);
+    }
+
+    .log-agent {
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+
+    .log-msg {
+      color: var(--text-primary);
+    }
+
+    .log-msg.highlight {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .log-msg.ok {
+      color: var(--success);
+    }
+  </style>
+</head>
+<body class="dot-grid">
+
+  <div class="app-container">
+    
+    <!-- TOP TELEMETRY BAR -->
+    <header class="system-bar">
+      <div class="brand-section">
+        <span class="brand-title">LEGACY // LAKEHOUSE</span>
+        <span class="chip">AUTONOMOUS MULTI-AGENT COPILOT</span>
+      </div>
+
+      <div class="system-meta-strip">
+        <div class="meta-item">
+          <span class="label-caps">THREAD ID</span>
+          <span class="meta-val" id="metaThread">pii_test_01</span>
+        </div>
+        <div class="meta-item">
+          <span class="label-caps">SOURCE DIALECT</span>
+          <span class="meta-val">DUCKDB / ORACLE</span>
+        </div>
+        <div class="meta-item">
+          <span class="label-caps">INFERENCE MODEL</span>
+          <span class="meta-val">OLLAMA llama3.2:latest</span>
+        </div>
+        <div class="meta-item">
+          <span class="label-caps">REPAIR CYCLES</span>
+          <span class="meta-val" id="metaRepairs">0</span>
+        </div>
+        
+        <!-- THEME TOGGLE -->
+        <div class="segmented-control">
+          <button class="segmented-btn active" id="btnThemeDark" onclick="setTheme('dark')">DARK</button>
+          <button class="segmented-btn" id="btnThemeLight" onclick="setTheme('light')">LIGHT</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- LANGGRAPH PIPELINE DAG -->
+    <section class="dag-section">
+      <div class="dag-header">
+        <span class="label-caps">LANGGRAPH STATE MACHINE // EXECUTION DAG</span>
+        <span class="chip" id="dagStatusChip">STATE: HALTED AT APPROVAL GATE</span>
+      </div>
+
+      <div class="nodes-grid">
+        <!-- 01 Profiler -->
+        <div class="dag-node completed" id="nodeProfiler">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="label-caps">01 NODE</span>
+            <span class="node-status-dot success"></span>
+          </div>
+          <span class="node-title">PROFILER</span>
+          <span class="node-desc">Schema AST, null stats & PII inference</span>
+        </div>
+
+        <!-- 02 Translator -->
+        <div class="dag-node completed" id="nodeTranslator">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="label-caps">02 NODE</span>
+            <span class="node-status-dot success"></span>
+          </div>
+          <span class="node-title">TRANSLATOR</span>
+          <span class="node-desc">PySpark code gen & Lakehouse staging</span>
+        </div>
+
+        <!-- 03 Validator -->
+        <div class="dag-node completed" id="nodeValidator">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="label-caps">03 NODE</span>
+            <span class="node-status-dot success"></span>
+          </div>
+          <span class="node-title">VALIDATOR</span>
+          <span class="node-desc">Dual-engine deterministic parity</span>
+        </div>
+
+        <!-- 04 Gate -->
+        <div class="dag-node halted" id="nodeGate">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="label-caps">04 CHECKPOINT</span>
+            <span class="node-status-dot gate" id="gateDot"></span>
+          </div>
+          <span class="node-title" style="color: var(--accent);">__INTERRUPT__</span>
+          <span class="node-desc">Human-in-the-loop sign-off gate</span>
+        </div>
+
+        <!-- 05 Fixer -->
+        <div class="dag-node" id="nodeFixer">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="label-caps">05 REPAIR LOOP</span>
+            <span class="node-status-dot" id="fixerDot"></span>
+          </div>
+          <span class="node-title">FIXER</span>
+          <span class="node-desc">Reflective diagnostics & feedback</span>
+        </div>
+
+        <!-- 06 Steward -->
+        <div class="dag-node" id="nodeSteward">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="label-caps">06 PROMOTION</span>
+            <span class="node-status-dot" id="stewardDot"></span>
+          </div>
+          <span class="node-title">STEWARD</span>
+          <span class="node-desc">Metadata lock & Runbook publishing</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORKSPACE SPLIT (PARITY METRICS vs ARTIFACT STUDIO) -->
+    <div class="workspace-split">
+      
+      <!-- LEFT: PARITY METRICS & DIVERGENCE -->
+      <section class="panel">
+        <div class="panel-header">
+          <span class="label-caps">DETERMINISTIC VALIDATION METRICS</span>
+          <span class="chip chip-success" id="parityBadge">PARITY: 100% RECONCILED</span>
+        </div>
+
+        <div class="panel-body">
+          <div>
+            <span class="label-caps">TOTAL DATA DIVERGENCE</span>
+            <div style="display: flex; align-items: baseline; gap: var(--space-md); margin-top: 4px;">
+              <span class="hero-number" id="divergenceVal">0.000</span>
+              <span class="label-caps" style="color: var(--success);">ASSERTIONS: 3/3 PASSED</span>
+            </div>
+          </div>
+
+          <!-- Discrete Segmented Bar -->
+          <div class="seg-progress-container">
+            <div style="display: flex; justify-content: space-between;">
+              <span class="label-caps">SOURCE / TARGET BITWISE PARITY</span>
+              <span class="label-caps">20/20 BLOCKS</span>
+            </div>
+            <div class="seg-progress-bar" id="segBar">
+              <!-- 20 discrete mechanical blocks -->
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+              <div class="seg-block filled-pass"></div>
+            </div>
+          </div>
+
+          <!-- Stat Row Group -->
+          <div class="stat-row-group">
+            <div class="stat-row">
+              <span class="stat-row-label">DUPLICATE_INDEX_PARITY</span>
+              <div style="display: flex; gap: var(--space-md); align-items: center;">
+                <span class="stat-row-value val-success">0.0 (MATCH)</span>
+                <span class="chip chip-success">PASSED</span>
+              </div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-row-label">NULL_DISTRIBUTION_CUST_NAT_DOC_NUM_ID</span>
+              <div style="display: flex; gap: var(--space-md); align-items: center;">
+                <span class="stat-row-value val-success">0.0 (MATCH)</span>
+                <span class="chip chip-success">PASSED</span>
+              </div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-row-label">DEDUPLICATED_CARDINALITY_BALANCE</span>
+              <div style="display: flex; gap: var(--space-md); align-items: center;">
+                <span class="stat-row-value val-success">0.0 (MATCH)</span>
+                <span class="chip chip-success">PASSED</span>
+              </div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-row-label">SOURCE ROW COUNT vs TARGET ROW COUNT</span>
+              <div style="display: flex; gap: var(--space-md); align-items: center;">
+                <span class="stat-row-value">1,000 / 1,000</span>
+                <span class="chip">EXACT</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- RIGHT: CODE ARTIFACT & PII STUDIO -->
+      <section class="panel">
+        <div class="panel-header" style="padding: 0;">
+          <div class="tab-strip">
+            <button class="tab-btn active" id="tabBtnCode" onclick="showTab('code')">GENERATED PYSPARK</button>
+            <button class="tab-btn" id="tabBtnPii" onclick="showTab('pii')">PII & SCHEMA MAPPING</button>
+            <button class="tab-btn" id="tabBtnReport" onclick="showTab('report')">STEWARD RUNBOOK</button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          
+          <!-- TAB 1: CODE -->
+          <div id="tabContentCode">
+            <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);">
+              <span class="label-caps">TARGET: SILVER_RAW_CUSTOMERS.PY</span>
+              <span class="label-caps">ENGINE: DUCKDB / PYSPARK</span>
+            </div>
+            <div class="code-editor-mock" id="codeDisplay"># Auto-generated by TranslatorAgent
+from pyspark.sql import functions as F
+
+def transform_silver_customers(bronze_df):
+    """
+    Silver transformation with salted PII hashing and normalization.
+    """
+    return (
+        bronze_df
+        .withColumn(
+            "cust_nat_doc_num_id",
+            F.sha2(F.concat(F.col("cust_nat_doc_num_id"), F.lit("SALT_v1")), 256)
+        )
+        .withColumn("created_at_utc", F.to_utc_timestamp(F.col("created_at"), "UTC"))
+        .dropDuplicates(["customer_id"])
+    )</div>
+          </div>
+
+          <!-- TAB 2: PII MAPPING -->
+          <div id="tabContentPii" style="display: none;">
+            <div class="stat-row-group">
+              <div class="stat-row">
+                <span class="stat-row-label">CUST_NAT_DOC_NUM_ID</span>
+                <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                  <span class="chip chip-accent">PII: NATIONAL ID</span>
+                  <span class="stat-row-value" style="font-size: 11px;">SHA256 MASKED</span>
+                </div>
+              </div>
+              <div class="stat-row">
+                <span class="stat-row-label">EMAIL_ADDRESS</span>
+                <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                  <span class="chip chip-accent">PII: CONTACT</span>
+                  <span class="stat-row-value" style="font-size: 11px;">HASHED</span>
+                </div>
+              </div>
+              <div class="stat-row">
+                <span class="stat-row-label">PHONE_NUMBER</span>
+                <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                  <span class="chip chip-accent">PII: CONTACT</span>
+                  <span class="stat-row-value" style="font-size: 11px;">LAST 4 RETAINED</span>
+                </div>
+              </div>
+              <div class="stat-row">
+                <span class="stat-row-label">ANNUAL_REVENUE_USD</span>
+                <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                  <span class="chip">FINANCIAL</span>
+                  <span class="stat-row-value" style="font-size: 11px;">DECIMAL(18,2)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: STEWARD REPORT -->
+          <div id="tabContentReport" style="display: none;">
+            <div class="code-editor-mock" id="reportDisplay">=== STEWARD MIGRATION AUDIT REPORT ===
+Entity: raw_customers
+Status: AWAITING_HUMAN_APPROVAL
+Repair Cycles: 0
+Audit Certificate: PENDING_PROMOTION
+
+Approve this checkpoint to register metadata and generate final deployment runbook.</div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+    <!-- HUMAN APPROVAL GATE INTERACTION BAR -->
+    <section class="hitl-gate-bar" id="gateBar">
+      <div class="gate-headline">
+        <div class="gate-signal">
+          <span class="node-status-dot gate" style="width: 8px; height: 8px;"></span>
+          <span class="hero-sub" id="gateText" style="color: var(--accent);">OPERATOR ACTION REQUIRED: APPROVAL GATE</span>
+        </div>
+        
+        <div class="gate-actions" id="gateActionButtons">
+          <button class="btn btn-primary" onclick="handleAction('approve')">[ APPROVE & PROMOTE ]</button>
+          <button class="btn btn-secondary" onclick="toggleFeedbackDrawer()">[ REJECT WITH FEEDBACK ]</button>
+          <button class="btn btn-destructive" onclick="handleAction('abort')">[ ABORT ]</button>
+        </div>
+      </div>
+
+      <!-- Feedback drawer for rejection -->
+      <div class="feedback-drawer" id="feedbackDrawer">
+        <span class="label-caps">OPERATOR REPAIR FEEDBACK (ROUTES DIRECTLY TO FIXER AGENT)</span>
+        <div style="display: flex; gap: var(--space-md);">
+          <input type="text" class="text-input" id="feedbackInput" value="Fix PII masking pattern for tax IDs to use sha256 with project salt." />
+          <button class="btn btn-primary" onclick="submitRejectFeedback()">SEND FEEDBACK</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TECHNICAL TELEMETRY STREAM CONSOLE -->
+    <div class="telemetry-console" id="logConsole">
+      <div class="log-line">
+        <span class="log-ts">[02:07:38]</span>
+        <span class="log-agent">[SYSTEM]</span>
+        <span class="log-msg">CLI Invocation: .\.venv\Scripts\python.exe -m src.cli run --table raw_customers --thread-id pii_test_01</span>
+      </div>
+      <div class="log-line">
+        <span class="log-ts">[02:07:39]</span>
+        <span class="log-agent">[PROFILER]</span>
+        <span class="log-msg">Completed Node: profiler. Detected sensitive entity cust_nat_doc_num_id.</span>
+      </div>
+      <div class="log-line">
+        <span class="log-ts">[02:07:41]</span>
+        <span class="log-agent">[TRANSLATOR]</span>
+        <span class="log-msg">Completed Node: translator. Generated PySpark Delta transformations and staged DuckDB silver table.</span>
+      </div>
+      <div class="log-line">
+        <span class="log-ts">[02:07:43]</span>
+        <span class="log-agent">[VALIDATOR]</span>
+        <span class="log-msg ok">Completed Node: validator. Parity Status: PASSED (Divergence = 0.0).</span>
+      </div>
+      <div class="log-line">
+        <span class="log-ts">[02:07:44]</span>
+        <span class="log-agent">[INTERRUPT]</span>
+        <span class="log-msg highlight">Execution halted at Human Approval Gate. Thread checkpoints.db synchronized.</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ==========================================================================
+       INTERACTIVE STATE MACHINE LOGIC
+       ========================================================================== */
+    let repairCount = 0;
+    let currentState = 'INTERRUPTED'; // 'INTERRUPTED' | 'REPAIRING' | 'PROMOTED' | 'ABORTED'
+
+    function setTheme(mode) {
+      document.documentElement.setAttribute('data-theme', mode);
+      document.getElementById('btnThemeDark').classList.toggle('active', mode === 'dark');
+      document.getElementById('btnThemeLight').classList.toggle('active', mode === 'light');
+    }
+
+    function showTab(tab) {
+      document.getElementById('tabContentCode').style.display = (tab === 'code') ? 'block' : 'none';
+      document.getElementById('tabContentPii').style.display = (tab === 'pii') ? 'block' : 'none';
+      document.getElementById('tabContentReport').style.display = (tab === 'report') ? 'block' : 'none';
+      
+      document.getElementById('tabBtnCode').classList.toggle('active', tab === 'code');
+      document.getElementById('tabBtnPii').classList.toggle('active', tab === 'pii');
+      document.getElementById('tabBtnReport').classList.toggle('active', tab === 'report');
+    }
+
+    function toggleFeedbackDrawer() {
+      const drawer = document.getElementById('feedbackDrawer');
+      drawer.classList.toggle('open');
+    }
+
+    function appendLog(agent, msg, type = '') {
+      const consoleEl = document.getElementById('logConsole');
+      const timeStr = new Date().toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.className = 'log-line';
+      div.innerHTML = `
+        <span class="log-ts">[${timeStr}]</span>
+        <span class="log-agent">[${agent}]</span>
+        <span class="log-msg ${type}">${msg}</span>
+      `;
+      consoleEl.appendChild(div);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    function handleAction(action) {
+      if (action === 'approve') {
+        currentState = 'PROMOTED';
+        appendLog('CLI', 'python -m src.cli resume --thread-id pii_test_01 --action approve');
+        appendLog('GRAPH', 'Resuming Thread: pii_test_01 with action: approve');
+        
+        // Update nodes
+        document.getElementById('nodeGate').className = 'dag-node completed';
+        document.getElementById('gateDot').className = 'node-status-dot success';
+        document.getElementById('nodeSteward').className = 'dag-node active';
+        document.getElementById('stewardDot').className = 'node-status-dot active';
+        
+        setTimeout(() => {
+          document.getElementById('nodeSteward').className = 'dag-node completed';
+          document.getElementById('stewardDot').className = 'node-status-dot success';
+          document.getElementById('dagStatusChip').textContent = 'STATE: MIGRATION CERTIFIED & DEPLOYED';
+          document.getElementById('dagStatusChip').className = 'chip chip-success';
+          
+          appendLog('STEWARD', 'Completed Node: steward. Runbook generated.');
+          appendLog('STEWARD', 'Migration successful. Delta table silver_raw_customers promoted to production Lakehouse.', 'ok');
+          
+          // Update gate bar
+          document.getElementById('gateBar').style.borderColor = 'var(--success)';
+          document.getElementById('gateText').textContent = 'DEPLOYMENT COMPLETED: RUNBOOK CERTIFIED';
+          document.getElementById('gateText').style.color = 'var(--success)';
+          document.getElementById('gateActionButtons').innerHTML = `
+            <button class="btn btn-secondary" onclick="resetDemo()">[ RE-RUN DEMO ]</button>
+          `;
+          document.getElementById('feedbackDrawer').classList.remove('open');
+          
+          // Switch tab to steward report
+          document.getElementById('reportDisplay').textContent = 
+`# Migration Runbook: raw_customers
+
+## 1. Migration Summary
+- **Source Entity**: \`raw_customers\`
+- **Target Lakehouse Table**: \`silver_raw_customers\`
+- **Parity Verification**: PASSED (Divergence 0.0)
+- **Repair Feedback Cycles**: ${repairCount}
+- **Timestamp**: ${new Date().toISOString()}
+
+## 2. Reconciled Parity Metrics
+| Metric | Source Value | Target Value | Divergence | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| \`duplicate_index_parity\` | \`0\` | \`0\` | \`0.0\` | PASSED |
+| \`null_distribution_cust_nat_doc_num_id\` | \`0.00%\` | \`0.00%\` | \`0.0\` | PASSED |
+| \`deduplicated_cardinality_balance\` | \`1000\` | \`1000\` | \`0.0\` | PASSED |
+
+## 3. Governance Certification
+Delta Lake staging table verified in DuckDB Lakehouse. PII compliance check passed.`;
+          showTab('report');
+        }, 800);
+
+      } else if (action === 'abort') {
+        currentState = 'ABORTED';
+        appendLog('CLI', 'python -m src.cli resume --thread-id pii_test_01 --action abort');
+        appendLog('GRAPH', 'Thread pii_test_01 aborted by operator.', 'highlight');
+        document.getElementById('gateText').textContent = 'PIPELINE ABORTED BY OPERATOR';
+        document.getElementById('dagStatusChip').textContent = 'STATE: TERMINATED';
+        document.getElementById('gateActionButtons').innerHTML = `
+          <button class="btn btn-secondary" onclick="resetDemo()">[ RE-INITIALIZE ]</button>
+        `;
+      }
+    }
+
+    function submitRejectFeedback() {
+      const feedback = document.getElementById('feedbackInput').value;
+      repairCount++;
+      document.getElementById('metaRepairs').textContent = repairCount;
+      document.getElementById('feedbackDrawer').classList.remove('open');
+      
+      appendLog('CLI', `python -m src.cli resume --thread-id pii_test_01 --action reject --feedback "${feedback}"`);
+      appendLog('GRAPH', `Resuming Thread: pii_test_01 with action: reject`);
+      
+      // Node sequence: fixer -> translator -> validator -> gate
+      document.getElementById('nodeFixer').className = 'dag-node active';
+      document.getElementById('fixerDot').className = 'node-status-dot active';
+      document.getElementById('dagStatusChip').textContent = 'STATE: RUNNING FIXER LOOP';
+      
+      setTimeout(() => {
+        appendLog('FIXER', 'Completed Node: fixer. Updated prompt constraints.');
+        document.getElementById('nodeFixer').className = 'dag-node completed';
+        document.getElementById('fixerDot').className = 'node-status-dot success';
+        
+        document.getElementById('nodeTranslator').className = 'dag-node active';
+        setTimeout(() => {
+          appendLog('TRANSLATOR', 'Completed Node: translator. Regenerated PySpark code with salted sha256.');
+          document.getElementById('nodeTranslator').className = 'dag-node completed';
+          
+          document.getElementById('nodeValidator').className = 'dag-node active';
+          setTimeout(() => {
+            appendLog('VALIDATOR', 'Completed Node: validator. Parity status: PASSED (divergence=0.0).', 'ok');
+            document.getElementById('nodeValidator').className = 'dag-node completed';
+            
+            // Back at gate
+            document.getElementById('nodeGate').className = 'dag-node halted';
+            document.getElementById('gateDot').className = 'node-status-dot gate';
+            document.getElementById('dagStatusChip').textContent = 'STATE: HALTED AT APPROVAL GATE';
+            appendLog('INTERRUPT', 'Completed Node: __interrupt__. Operator action required.', 'highlight');
+          }, 600);
+        }, 600);
+      }, 600);
+    }
+
+    function resetDemo() {
+      repairCount = 0;
+      document.getElementById('metaRepairs').textContent = '0';
+      document.getElementById('dagStatusChip').textContent = 'STATE: HALTED AT APPROVAL GATE';
+      document.getElementById('dagStatusChip').className = 'chip';
+      
+      document.getElementById('nodeProfiler').className = 'dag-node completed';
+      document.getElementById('nodeTranslator').className = 'dag-node completed';
+      document.getElementById('nodeValidator').className = 'dag-node completed';
+      document.getElementById('nodeGate').className = 'dag-node halted';
+      document.getElementById('gateDot').className = 'node-status-dot gate';
+      document.getElementById('nodeFixer').className = 'dag-node';
+      document.getElementById('fixerDot').className = 'node-status-dot';
+      document.getElementById('nodeSteward').className = 'dag-node';
+      document.getElementById('stewardDot').className = 'node-status-dot';
+      
+      document.getElementById('gateBar').style.borderColor = 'var(--accent)';
+      document.getElementById('gateText').textContent = 'OPERATOR ACTION REQUIRED: APPROVAL GATE';
+      document.getElementById('gateText').style.color = 'var(--accent)';
+      document.getElementById('gateActionButtons').innerHTML = `
+        <button class="btn btn-primary" onclick="handleAction('approve')">[ APPROVE & PROMOTE ]</button>
+        <button class="btn btn-secondary" onclick="toggleFeedbackDrawer()">[ REJECT WITH FEEDBACK ]</button>
+        <button class="btn btn-destructive" onclick="handleAction('abort')">[ ABORT ]</button>
+      `;
+      
+      showTab('code');
+      appendLog('SYSTEM', 'Demo re-initialized at checkpoint pii_test_01.');
+    }
+  </script>
+</body>
+</html>

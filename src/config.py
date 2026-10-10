@@ -11,6 +11,10 @@ class AppConfig(BaseModel):
     epsilon_tolerance: float = 1e-6
 
 
+class SecurityConfig(BaseModel):
+    pii_hash_salt: str = "pepper_sec_v1_demo"
+
+
 class DatabaseConfig(BaseModel):
     legacy_path: str = "data/legacy/legacy_warehouse.duckdb"
     target_path: str = "data/medallion/lakehouse_medallion.duckdb"
@@ -27,6 +31,7 @@ class LLMConfig(BaseModel):
 
 class Settings(BaseSettings):
     app: AppConfig = Field(default_factory=AppConfig)
+    security: SecurityConfig = Field(default_factory=SecurityConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
 
@@ -54,6 +59,8 @@ class Settings(BaseSettings):
             data["llm"] = {}
         if "database" not in data:
             data["database"] = {}
+        if "security" not in data:
+            data["security"] = {}
 
         if os.getenv("LLM_PROVIDER"):
             data["llm"]["provider"] = os.getenv("LLM_PROVIDER")
@@ -61,6 +68,9 @@ class Settings(BaseSettings):
             data["llm"]["model_name"] = os.getenv("OLLAMA_MODEL")
         if os.getenv("OLLAMA_BASE_URL"):
             data["llm"]["ollama_base_url"] = os.getenv("OLLAMA_BASE_URL")
+
+        if os.getenv("PII_HASH_SALT"):
+            data["security"]["pii_hash_salt"] = os.getenv("PII_HASH_SALT")
 
         if os.getenv("LEGACY_DB_PATH"):
             data["database"]["legacy_path"] = os.getenv("LEGACY_DB_PATH")

@@ -26,7 +26,7 @@ class FixerAgent:
             diagnostics.append(f"• Error Message: {m.get('error_message')}")
 
             # Root-cause deduction
-            if "duplicate" in m["metric_name"]:
+            if "duplicate" in m["metric_name"] or "cardinality" in m["metric_name"]:
                 diagnostics.append(
                     "• Suspected Mechanism: Window row_number() deduplication missing explicit secondary tie-breaker."
                 )

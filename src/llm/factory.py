@@ -40,6 +40,16 @@ class MockChatModel(BaseChatModel):
                 "DOCUMENTATION:\n"
                 "Table migrated successfully to Delta Lake Medallion format with strict mathematical reconciliation."
             )
+        elif "view" in str(last_msg).lower() or "translate" in str(last_msg).lower():
+            text = (
+                "SQL_TRANSLATION:\n"
+                "SELECT o.order_id, o.customer_id, "
+                "CASE WHEN o.order_status_history LIKE '%DELIVERED%' THEN 'COMPLETED' "
+                "WHEN o.order_status_history LIKE '%CANCELLED%' THEN 'CANCELLED' "
+                "ELSE 'IN_PROGRESS' END AS calculated_status, "
+                "COALESCE(p.payment_value, 0.0) AS payment_amount "
+                "FROM bronze_v_order_summary o;"
+            )
         else:
             text = "Generated migration code compliant with Databricks Delta Lake standards."
 

@@ -1,20 +1,34 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from src.core.state import MigrationState, ParityMetric
 from src.tools.database import DatabaseRunner
 from src.tools.metrics import ParityReconciliationEngine
 
 
 class ValidatorAgent:
-    """Deterministic Reconciliation Engine comparing legacy source and lakehouse target."""
+    """Deterministic Reconciliation Engine comparing legacy source and staging lakehouse target."""
 
     def __init__(self, source_db: DatabaseRunner, target_db: DatabaseRunner, epsilon_tolerance: float = 1e-6):
         self.source_db = source_db
         self.target_db = target_db
         self.engine = ParityReconciliationEngine(epsilon_tolerance=epsilon_tolerance)
 
-    def validate_table(self, table_name: str, primary_key: str = "order_id") -> List[ParityMetric]:
-        """Runs the complete suite of mathematical parity assertions."""
-        target_table = f"silver_{table_name}"
+    def validate_table(
+        self,
+        table_name: str,
+        primary_key: str = "order_id",
+        target_table_name: Optional[str] = None,
+    ) -> List[ParityMetric]:
+        """Runs the complete suite of mathematical parity assertions against target table."""
+        # Validate against staging table if available, else standard target
+        if target_table_name:
+            target_table = target_table_name
+        else:
+            tables = self.target_db.list_tables()
+            if f"staging_silver_{table_name}" in tables:
+                target_table = f"staging_silver_{table_name}"
+            else:
+                target_table = f"silver_{table_name}"
+
         metrics: List[ParityMetric] = []
 
         # 1. Duplicate Index Parity
@@ -38,7 +52,7 @@ class ValidatorAgent:
             if any(num_t in str(c["column_type"]).upper() for num_t in ["DOUBLE", "FLOAT", "DECIMAL", "NUMERIC", "INT"])
             and c["column_name"].lower() in t_cols
         ]
-        for ncol in numeric_cols[:2]:
+        for ncol in numeric_cols:
             num_metric = self.engine.check_numeric_epsilon(
                 source_db=self.source_db,
                 target_db=self.target_db,
@@ -63,9 +77,7 @@ class ValidatorAgent:
             )
             metrics.append(null_metric)
 
-        # Row count check (for clean tables without deduplication; for tables with known duplicates, target is deduplicated)
-        # Note: if table is raw_orders, source has 5 rows, deduplicated target has 4 rows.
-        # Check row count parity against distinct source PK count
+        # Row count check against distinct source PK count
         s_distinct = self.source_db.fetch_one(f"SELECT COUNT(DISTINCT {primary_key}) AS cnt FROM {table_name}")
         t_count = self.target_db.fetch_one(f"SELECT COUNT(*) AS cnt FROM {target_table}")
         s_expected = int(s_distinct["cnt"]) if s_distinct else 0
@@ -96,8 +108,9 @@ class ValidatorAgent:
         profiles = state.get("profiles", {}).get(current_table, [])
         pk_cols = [p["column_name"] for p in profiles if p["is_primary_key"]]
         primary_key = pk_cols[0] if pk_cols else "order_id"
+        staging_entity = state.get("staging_entity")
 
-        metrics = self.validate_table(current_table, primary_key)
+        metrics = self.validate_table(current_table, primary_key, target_table_name=staging_entity)
         all_passed = all(m["passed"] for m in metrics)
 
         return {

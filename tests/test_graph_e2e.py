@@ -57,9 +57,12 @@ def test_migration_graph_e2e_with_hitl():
         assert "profiler" in node_names
         assert "translator" in node_names
         assert "validator" in node_names
+        assert "fixer" in node_names  # Confirms self-healing repair cycle engaged!
 
         state_snap = graph.get_state(config)
         assert "human_approval" in state_snap.next
+        assert "staging_silver_raw_orders" in t_runner.list_tables()
+        assert "silver_raw_orders" not in t_runner.list_tables()
 
         # 2. Operator approves state
         graph.update_state(
@@ -74,7 +77,9 @@ def test_migration_graph_e2e_with_hitl():
 
         assert "steward" in resume_nodes
 
-        # 4. Verify final state
+        # 4. Verify promotion and final state
+        assert "silver_raw_orders" in t_runner.list_tables(), "Production table must exist after approval"
+        assert "staging_silver_raw_orders" not in t_runner.list_tables(), "Staging table must be dropped after promotion"
         final_state = graph.get_state(config).values
         assert final_state["final_migration_report"] is not None
         assert "Migration Runbook" in final_state["final_migration_report"]

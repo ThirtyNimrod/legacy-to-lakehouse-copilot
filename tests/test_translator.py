@@ -39,3 +39,4 @@ def test_translator_generates_pyspark_artifacts(temp_target_db):
     assert "cloudFiles" in bronze_code
     assert "Window.partitionBy" in silver_code
     assert "sha2" in silver_code  # PII redaction
+    assert "concat" in silver_code  # Salted hash

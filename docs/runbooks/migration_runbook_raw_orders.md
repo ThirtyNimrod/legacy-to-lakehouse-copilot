@@ -2,15 +2,15 @@
 
 ## 1. Migration Summary
 - **Source Entity**: `raw_orders`
-- **Target Lakehouse Table**: `silver_raw_orders`
+- **Target Lakehouse Table**: `silver_raw_orders` (Promoted from Staging)
 - **Parity Verification**: PASSED
-- **Repair Feedback Cycles**: 0
+- **Repair Feedback Cycles**: 1
 
 ## 2. Reconciled Parity Metrics
 | Metric | Source Value | Target Value | Divergence | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | `duplicate_index_parity` | `0` | `0` | `0.0` | PASSED |
-| `null_distribution_customer_id` | `0.0` | `0.0` | `0.0` | PASSED |
+| `null_distribution_order_purchase_date_str` | `0.0` | `0.0` | `0.0` | PASSED |
 | `deduplicated_cardinality_balance` | `4` | `4` | `0.0` | PASSED |
 
 ## 3. Unity Catalog Governance Tags
@@ -25,6 +25,7 @@ COMMENT ON COLUMN lakehouse.silver.raw_orders.ingest_date IS 'Target type STRING
 
 ## 4. Generated Artifacts
 - Bronze Ingestion Stream PySpark Code
-- Silver Medallion Window Deduplication & Cleansing PySpark Code
+- Silver Medallion Window Deduplication & Cleansing PySpark Code (Salted PII Hash)
+- Production Promotion from Staging
 
 _Generated autonomously by Legacy-to-Lakehouse Migration Copilot._

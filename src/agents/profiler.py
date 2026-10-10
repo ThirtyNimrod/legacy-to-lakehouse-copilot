@@ -143,10 +143,14 @@ class ProfilerAgent:
         )
         ai_msg = self.llm.invoke([HumanMessage(content=prompt)])
 
+        cur_tbl = exec_order[0] if exec_order else ""
         return {
             "profiles": profiles,
             "lineage_graph": lineage_map,
             "execution_order": exec_order,
-            "current_table": exec_order[0] if exec_order else "",
+            "current_table": cur_tbl,
+            "pending_tables": exec_order[1:] if len(exec_order) > 1 else [],
+            "completed_tables": [],
             "messages": [ai_msg],
         }
+

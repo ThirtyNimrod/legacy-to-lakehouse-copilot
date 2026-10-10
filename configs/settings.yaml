@@ -3,6 +3,9 @@ app:
   max_retries: 3
   epsilon_tolerance: 1e-6
 
+security:
+  pii_hash_salt: "pepper_sec_v1_demo"
+
 database:
   legacy_path: "data/legacy/legacy_warehouse.duckdb"
   target_path: "data/medallion/lakehouse_medallion.duckdb"

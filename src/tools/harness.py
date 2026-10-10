@@ -34,7 +34,8 @@ class LegacyWarehouseHarness:
         ('c_101', '123.456.789-00', 'ana.silva@example.com', '+55 11 98765-4321', 'Sao Paulo', 'SP'),
         ('c_102', '987.654.321-99', 'carlos.m@example.org', '+55 21 91234-5678', 'Rio de Janeiro', 'RJ'),
         ('c_103', '111.222.333-44', 'beatriz.p@example.com', '+55 31 99887-7665', 'Belo Horizonte', 'MG'),
-        ('c_104', '555.666.777-88', 'fernando.s@example.net', '+55 41 98877-6655', 'Curitiba', 'PR');
+        ('c_104', '555.666.777-88', 'fernando.s@example.net', '+55 41 98877-6655', 'Curitiba', 'PR'),
+        ('c_105', '', '', '+55 71 99999-0000', 'Salvador', 'BA');
         """)
 
         # 2. raw_categories: Hierarchical self-referential categories
