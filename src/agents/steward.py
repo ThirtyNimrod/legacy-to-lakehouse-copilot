@@ -91,9 +91,10 @@ class StewardAgent:
         ])
 
         report = "\n".join(lines)
-        report_file = self.runbook_dir / f"migration_runbook_{table_name}.md"
-        with open(report_file, "w", encoding="utf-8") as f:
-            f.write(report)
+        if table_name and table_name.strip() and table_name not in ["table", ""]:
+            report_file = self.runbook_dir / f"migration_runbook_{table_name}.md"
+            with open(report_file, "w", encoding="utf-8") as f:
+                f.write(report)
 
         return report
 

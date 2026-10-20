@@ -63,13 +63,27 @@ class FixerAgent:
         if human_feedback:
             feedback_text = f"Human operator feedback: {human_feedback}\n"
 
+        import datetime
+
         diagnostic_payload = feedback_text + self.generate_diagnostic_payload(current_table, failed)
         current_attempts = state.get("fix_attempts", 0) + 1
+
+        attempts = list(state.get("attempts", []))
+        failed_check_names = [m.get("metric_name", "") for m in failed]
+        attempts.append({
+            "attempt_number": current_attempts,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "diagnosis": diagnostic_payload,
+            "patch_diff": "Prescribed transformation refinement in Translator repair loop",
+            "failed_checks": failed_check_names,
+            "result_status": "FAILED",
+        })
 
         ai_msg = AIMessage(content=f"Fixer Agent diagnostic:\n{diagnostic_payload}")
 
         return {
             "diagnostic_feedback": diagnostic_payload,
             "fix_attempts": current_attempts,
+            "attempts": attempts,
             "messages": [ai_msg],
         }

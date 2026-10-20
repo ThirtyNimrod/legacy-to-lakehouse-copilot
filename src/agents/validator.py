@@ -113,7 +113,38 @@ class ValidatorAgent:
         metrics = self.validate_table(current_table, primary_key, target_table_name=staging_entity)
         all_passed = all(m["passed"] for m in metrics)
 
+        # Build plain-words CheckRecord list (failing checks first per ui-2.md)
+        checks = []
+        for m in metrics:
+            m_name = m["metric_name"]
+            if "duplicate_index" in m_name:
+                desc = f"Zero duplicate occurrences on primary key {primary_key}"
+            elif "cardinality" in m_name:
+                desc = "Unique row count matches deduplicated legacy primary keys"
+            elif "null_distribution" in m_name:
+                col = m_name.replace("null_distribution_", "")
+                desc = f"Null frequency preservation on attribute {col}"
+            elif "numeric" in m_name or "epsilon" in m_name:
+                desc = "Floating point precision matches within epsilon tolerance"
+            else:
+                desc = f"Deterministic parity verification on {m_name}"
+
+            checks.append({
+                "name": m_name,
+                "description": desc,
+                "source_value": m.get("source_metric"),
+                "target_value": m.get("target_metric"),
+                "tolerance": m.get("tolerance_threshold", 0.0),
+                "divergence": m.get("divergence_score", 0.0),
+                "status": "PASS" if m.get("passed") else "FAIL",
+                "error_message": m.get("error_message"),
+            })
+
+        # Sort: FAIL first, then PASS
+        checks.sort(key=lambda c: 0 if c["status"] == "FAIL" else 1)
+
         return {
             "validation_metrics": metrics,
             "validation_passed": all_passed,
+            "checks": checks,
         }

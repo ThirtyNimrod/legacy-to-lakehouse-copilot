@@ -1,0 +1,174 @@
+{
+  "thread_id": "thread_orders_02",
+  "run_id": "run_07",
+  "current_table": "raw_orders",
+  "target_environment": "LOCAL · DUCKDB",
+  "model_name": "llama3.2 (ollama)",
+  "staging_entity": "staging.silver_raw_orders",
+  "target_entity": "silver.raw_orders",
+  "status": "FIXING",
+  "repair_summary": "Attempt 2 of 3 in progress",
+  "fix_attempts": 1,
+  "max_retries": 3,
+  "checks": [
+    {
+      "name": "dedup_cardinality",
+      "description": "Unique row count matches deduplicated legacy primary keys",
+      "source_value": 1000,
+      "target_value": 1004,
+      "tolerance": 0.0,
+      "divergence": 4.0,
+      "status": "FAIL",
+      "error_message": "Target row count 1004 exceeds expected unique orders 1000. 4 duplicate rows leaked."
+    },
+    {
+      "name": "duplicate_pk_count",
+      "description": "Zero duplicate occurrences on primary key order_id",
+      "source_value": 0,
+      "target_value": 0,
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "null_ratio_order_date",
+      "description": "Null frequency preservation on order timestamp",
+      "source_value": "0.00%",
+      "target_value": "0.00%",
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "null_ratio_customer_id",
+      "description": "Null frequency preservation on foreign key customer_id",
+      "source_value": "0.00%",
+      "target_value": "0.00%",
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "status_enum_validity",
+      "description": "Permitted order status codes strictly maintained",
+      "source_value": "3 codes",
+      "target_value": "3 codes",
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "numeric_epsilon_total_amt",
+      "description": "Floating point precision drift on order total currency amounts",
+      "source_value": "128,450.20",
+      "target_value": "128,450.20",
+      "tolerance": 1e-6,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    }
+  ],
+  "column_treatments": [
+    {
+      "source_col": "order_id",
+      "target_col": "order_id",
+      "source_type": "NUMBER(12)",
+      "target_type": "BIGINT",
+      "is_sensitive": false,
+      "sensitivity_type": null,
+      "treatment": "keep",
+      "ai_suggested": false,
+      "sample_before": ["5001", "5002", "5003"],
+      "sample_after": ["5001", "5002", "5003"]
+    },
+    {
+      "source_col": "cust_id",
+      "target_col": "customer_id",
+      "source_type": "NUMBER(12)",
+      "target_type": "BIGINT",
+      "is_sensitive": false,
+      "sensitivity_type": null,
+      "treatment": "keep",
+      "ai_suggested": true,
+      "sample_before": ["1001", "1002", "1003"],
+      "sample_after": ["1001", "1002", "1003"]
+    },
+    {
+      "source_col": "order_ts_raw",
+      "target_col": "order_timestamp",
+      "source_type": "VARCHAR(30)",
+      "target_type": "TIMESTAMP",
+      "is_sensitive": false,
+      "sensitivity_type": null,
+      "treatment": "keep",
+      "ai_suggested": true,
+      "sample_before": ["2024-01-15 10:30:00", "15/01/2024 10:35", "2024-01-15T10:40:00Z"],
+      "sample_after": ["2024-01-15 10:30:00 UTC", "2024-01-15 10:35:00 UTC", "2024-01-15 10:40:00 UTC"]
+    }
+  ],
+  "provenance": [
+    {
+      "statement_index": 1,
+      "statement_sql": "SELECT order_id, cust_id, order_ts_raw FROM raw_orders",
+      "pyspark_equivalent": "bronze_df = spark.readStream.table('bronze.raw_orders')",
+      "provenance": "RULE"
+    },
+    {
+      "statement_index": 2,
+      "statement_sql": "QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY order_ts_raw DESC) = 1",
+      "pyspark_equivalent": "dedup_window = Window.partitionBy('order_id').orderBy(F.col('order_ts_raw').desc())",
+      "provenance": "MODEL"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_number": 1,
+      "timestamp": "2026-10-11T01:14:22Z",
+      "diagnosis": "Window row_number() deduplication missing explicit secondary tie-breaker in orderBy clause. Duplicate timestamps cause tie flakiness.",
+      "patch_diff": "- Window.partitionBy('order_id').orderBy(F.col('order_ts_raw').desc())\n+ Window.partitionBy('order_id').orderBy(F.col('order_ts_raw').desc(), F.col('order_id').asc())",
+      "failed_checks": ["dedup_cardinality"],
+      "result_status": "FAILED"
+    }
+  ],
+  "telemetry": [
+    {
+      "node_name": "profiler",
+      "duration_ms": 980.2,
+      "model_name": "llama3.2 (ollama)",
+      "tokens_input": 650,
+      "tokens_output": 210,
+      "prompt": "Profile schema for table: raw_orders",
+      "response": "Identified dirty mixed date strings and unscaled duplicate updates."
+    },
+    {
+      "node_name": "validator",
+      "duration_ms": 710.0,
+      "model_name": "deterministic_engine",
+      "tokens_input": 0,
+      "tokens_output": 0,
+      "prompt": null,
+      "response": "5 of 6 checks pass, 1 failing. dedup_cardinality divergence=4.0."
+    },
+    {
+      "node_name": "fixer",
+      "duration_ms": 1450.4,
+      "model_name": "llama3.2 (ollama)",
+      "tokens_input": 1120,
+      "tokens_output": 420,
+      "prompt": "Diagnose failure: dedup_cardinality divergence 4.0",
+      "response": "Root cause: Window tie-breaker missing. Prescribing secondary order by order_id asc."
+    }
+  ],
+  "graph_nodes": [
+    {"id": "profiler", "label": "PROFILER", "status": "COMPLETED"},
+    {"id": "translator", "label": "TRANSLATOR", "status": "COMPLETED"},
+    {"id": "validator", "label": "VALIDATOR", "status": "COMPLETED"},
+    {"id": "gate", "label": "APPROVAL GATE", "status": "IDLE"},
+    {"id": "fixer", "label": "FIXER", "status": "RUNNING"},
+    {"id": "steward", "label": "STEWARD", "status": "IDLE"}
+  ]
+}

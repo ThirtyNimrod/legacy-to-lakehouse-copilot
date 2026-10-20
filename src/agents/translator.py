@@ -288,8 +288,33 @@ class TranslatorAgent:
             columns=profiles,
         )
 
+        # Build statement provenance records per ui-2.md
+        provenance = [
+            {
+                "statement_index": 1,
+                "statement_sql": f"SELECT * FROM {current_table}",
+                "pyspark_equivalent": f"bronze_df = spark.readStream.table('bronze.{current_table}')",
+                "provenance": "RULE",
+            },
+            {
+                "statement_index": 2,
+                "statement_sql": f"QUALIFY ROW_NUMBER() OVER (PARTITION BY {primary_key} ORDER BY updated_at DESC) = 1",
+                "pyspark_equivalent": f"dedup_window = Window.partitionBy('{primary_key}').orderBy(F.col('updated_at').desc(), F.col('{primary_key}').asc())",
+                "provenance": "RULE",
+            },
+        ]
+        sens_cols = [p["column_name"] for p in profiles if p.get("is_sensitive")]
+        if sens_cols:
+            provenance.append({
+                "statement_index": 3,
+                "statement_sql": f"-- Salted SHA256 PII Redaction for {', '.join(sens_cols)}",
+                "pyspark_equivalent": f"silver_df = bronze_df.withColumn('{sens_cols[0]}', F.sha2(F.concat(F.col('{sens_cols[0]}'), F.lit('{self.pii_salt}')), 256))",
+                "provenance": "MODEL",
+            })
+
         return {
             "artifacts": artifacts,
             "staging_entity": staging_entity,
             "active_salt": self.pii_salt,
+            "provenance": provenance,
         }

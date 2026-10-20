@@ -144,6 +144,57 @@ class ProfilerAgent:
         ai_msg = self.llm.invoke([HumanMessage(content=prompt)])
 
         cur_tbl = exec_order[0] if exec_order else ""
+
+        # Build column_treatments and initial table_status_map per ui-2.md
+        column_treatments: Dict[str, Any] = {}
+        for tbl, col_list in profiles.items():
+            treatments = []
+            for col in col_list:
+                s_name = col["column_name"]
+                is_sens = col.get("is_sensitive", False)
+                sens_type = col.get("sensitivity_type")
+                if is_sens and any(k in s_name.lower() for k in ["doc", "cpf", "tax", "ssn"]):
+                    treat = "hash"
+                elif is_sens:
+                    treat = "mask"
+                else:
+                    treat = "keep"
+
+                # Safe masked samples
+                raw_samples = col.get("sample_values", [])[:3]
+                if is_sens:
+                    samples_before = ["***MASKED***" for _ in raw_samples]
+                    samples_after = ["***HASHED***" if treat == "hash" else "***MASKED***" for _ in raw_samples]
+                else:
+                    samples_before = raw_samples
+                    samples_after = raw_samples
+
+                treatments.append({
+                    "source_col": s_name,
+                    "target_col": s_name,
+                    "source_type": col.get("legacy_type", "VARCHAR"),
+                    "target_type": col.get("target_type", "STRING"),
+                    "is_sensitive": is_sens,
+                    "sensitivity_type": sens_type,
+                    "treatment": treat,
+                    "ai_suggested": bool(is_sens or col.get("legacy_type") != col.get("target_type")),
+                    "sample_before": samples_before,
+                    "sample_after": samples_after,
+                })
+            column_treatments[tbl] = treatments
+
+        # Build table status map
+        status_map: Dict[str, str] = {}
+        for idx, tbl in enumerate(exec_order):
+            if idx == 0:
+                status_map[tbl] = "NEEDS_REVIEW"
+            else:
+                upstreams = lineage_map.get(tbl, {}).get("upstream_dependencies", [])
+                if upstreams:
+                    status_map[tbl] = f"BLOCKED (waits on {', '.join(upstreams)})"
+                else:
+                    status_map[tbl] = "QUEUED"
+
         return {
             "profiles": profiles,
             "lineage_graph": lineage_map,
@@ -151,6 +202,8 @@ class ProfilerAgent:
             "current_table": cur_tbl,
             "pending_tables": exec_order[1:] if len(exec_order) > 1 else [],
             "completed_tables": [],
+            "column_treatments": column_treatments,
+            "table_status_map": status_map,
             "messages": [ai_msg],
         }
 

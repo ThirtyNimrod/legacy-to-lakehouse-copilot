@@ -168,6 +168,13 @@ def handle_resume(args: argparse.Namespace) -> None:
                     console.print(report[:450] + "\n...")
 
 
+def handle_serve(args: argparse.Namespace) -> None:
+    """Launches the FastAPI operator console server."""
+    import uvicorn
+    console.print(f"[bold cyan]Launching Operator Console API on http://{args.host}:{args.port}[/bold cyan]")
+    uvicorn.run("src.api.app:app", host=args.host, port=args.port, reload=args.reload)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Legacy-to-Lakehouse Migration Copilot CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -187,6 +194,12 @@ def main() -> None:
     resume_parser.add_argument("--action", choices=["approve", "reject", "abort"], required=True)
     resume_parser.add_argument("--feedback", default=None, help="Correction feedback")
 
+    # Serve (FastAPI Operator Console)
+    serve_parser = subparsers.add_parser("serve", help="Launch FastAPI web operator console server")
+    serve_parser.add_argument("--host", default="127.0.0.1", help="Host address")
+    serve_parser.add_argument("--port", type=int, default=8000, help="Port number")
+    serve_parser.add_argument("--reload", action="store_true", help="Auto-reload on code change")
+
     args = parser.parse_args()
 
     if args.command == "seed":
@@ -195,6 +208,8 @@ def main() -> None:
         handle_run(args)
     elif args.command == "resume":
         handle_resume(args)
+    elif args.command == "serve":
+        handle_serve(args)
 
 
 if __name__ == "__main__":

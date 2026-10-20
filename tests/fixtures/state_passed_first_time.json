@@ -1,0 +1,195 @@
+{
+  "thread_id": "thread_cust_01",
+  "run_id": "run_07",
+  "current_table": "raw_customers",
+  "target_environment": "LOCAL · DUCKDB",
+  "model_name": "llama3.2 (ollama)",
+  "staging_entity": "staging.silver_raw_customers",
+  "target_entity": "silver.raw_customers",
+  "status": "NEEDS_REVIEW",
+  "repair_summary": "Passed first time",
+  "fix_attempts": 0,
+  "max_retries": 3,
+  "checks": [
+    {
+      "name": "dedup_cardinality",
+      "description": "Unique row count matches deduplicated legacy primary keys",
+      "source_value": 1000,
+      "target_value": 1000,
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "duplicate_pk_count",
+      "description": "Zero duplicate occurrences on primary key customer_id",
+      "source_value": 0,
+      "target_value": 0,
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "null_ratio_cust_nat_doc",
+      "description": "Null frequency preservation on national document ID",
+      "source_value": "0.00%",
+      "target_value": "0.00%",
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "null_ratio_email",
+      "description": "Null frequency preservation on customer email",
+      "source_value": "1.20%",
+      "target_value": "1.20%",
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "empty_string_normalization",
+      "description": "Legacy Oracle empty strings cleanly normalized to SQL NULL",
+      "source_value": "24 empty",
+      "target_value": "24 null",
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "total_column_count",
+      "description": "All legacy source columns mapped or deliberately transformed",
+      "source_value": 9,
+      "target_value": 9,
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    }
+  ],
+  "column_treatments": [
+    {
+      "source_col": "cust_nat_doc_num_id",
+      "target_col": "cust_nat_doc_num_id",
+      "source_type": "VARCHAR(32)",
+      "target_type": "STRING",
+      "is_sensitive": true,
+      "sensitivity_type": "PII: NATIONAL ID",
+      "treatment": "hash",
+      "ai_suggested": true,
+      "sample_before": ["123.456.789-01", "987.654.321-99", "456.789.012-34"],
+      "sample_after": ["e3b0c44298fc1c149afb...", "f892a01349bc0912d7aa...", "a1c2d3e4f50987654321..."]
+    },
+    {
+      "source_col": "cust_email_address",
+      "target_col": "customer_email",
+      "source_type": "VARCHAR(128)",
+      "target_type": "STRING",
+      "is_sensitive": true,
+      "sensitivity_type": "PII: EMAIL",
+      "treatment": "mask",
+      "ai_suggested": true,
+      "sample_before": ["john.doe@example.com", "alice.smith@corp.net", "bob99@domain.org"],
+      "sample_after": ["j***e@example.com", "a***h@corp.net", "b***9@domain.org"]
+    },
+    {
+      "source_col": "cust_phone_no",
+      "target_col": "customer_phone",
+      "source_type": "VARCHAR(32)",
+      "target_type": "STRING",
+      "is_sensitive": true,
+      "sensitivity_type": "PII: PHONE",
+      "treatment": "mask",
+      "ai_suggested": true,
+      "sample_before": ["+1 (555) 234-5678", "+1 (555) 876-5432", "+1 (555) 345-6789"],
+      "sample_after": ["***-***-5678", "***-***-5432", "***-***-6789"]
+    },
+    {
+      "source_col": "customer_id",
+      "target_col": "customer_id",
+      "source_type": "NUMBER(12)",
+      "target_type": "BIGINT",
+      "is_sensitive": false,
+      "sensitivity_type": null,
+      "treatment": "keep",
+      "ai_suggested": false,
+      "sample_before": ["1001", "1002", "1003"],
+      "sample_after": ["1001", "1002", "1003"]
+    },
+    {
+      "source_col": "customer_name",
+      "target_col": "customer_name",
+      "source_type": "VARCHAR(100)",
+      "target_type": "STRING",
+      "is_sensitive": false,
+      "sensitivity_type": null,
+      "treatment": "keep",
+      "ai_suggested": false,
+      "sample_before": ["Acme Corp", "Beta LLC", "Gamma Inc"],
+      "sample_after": ["Acme Corp", "Beta LLC", "Gamma Inc"]
+    }
+  ],
+  "provenance": [
+    {
+      "statement_index": 1,
+      "statement_sql": "SELECT customer_id, customer_name, cust_nat_doc_num_id FROM raw_customers",
+      "pyspark_equivalent": "bronze_df = spark.readStream.table('bronze.raw_customers')",
+      "provenance": "RULE"
+    },
+    {
+      "statement_index": 2,
+      "statement_sql": "QUALIFY ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY updated_at DESC) = 1",
+      "pyspark_equivalent": "dedup_window = Window.partitionBy('customer_id').orderBy(F.col('updated_at').desc(), F.col('customer_id').asc())",
+      "provenance": "RULE"
+    },
+    {
+      "statement_index": 3,
+      "statement_sql": "-- Salted SHA256 PII Redaction",
+      "pyspark_equivalent": "silver_df = bronze_df.withColumn('cust_nat_doc_num_id', F.sha2(F.concat(F.col('cust_nat_doc_num_id'), F.lit('SALT_v1')), 256))",
+      "provenance": "MODEL"
+    }
+  ],
+  "attempts": [],
+  "telemetry": [
+    {
+      "node_name": "profiler",
+      "duration_ms": 1240.5,
+      "model_name": "llama3.2 (ollama)",
+      "tokens_input": 840,
+      "tokens_output": 320,
+      "prompt": "Profile schema and detect sensitive entities for table: raw_customers",
+      "response": "Identified 3 sensitive columns: cust_nat_doc_num_id (CPF), cust_email_address (Email), cust_phone_no (Phone)."
+    },
+    {
+      "node_name": "translator",
+      "duration_ms": 2810.0,
+      "model_name": "llama3.2 (ollama)",
+      "tokens_input": 1420,
+      "tokens_output": 610,
+      "prompt": "Generate PySpark Lakehouse transformation for raw_customers with salted PII hashing",
+      "response": "Generated silver PySpark transformation script with sha2 salted redaction."
+    },
+    {
+      "node_name": "validator",
+      "duration_ms": 620.2,
+      "model_name": "deterministic_engine",
+      "tokens_input": 0,
+      "tokens_output": 0,
+      "prompt": null,
+      "response": "Executed 6 mathematical assertions. Parity: 100% match. Divergence: 0.0."
+    }
+  ],
+  "graph_nodes": [
+    {"id": "profiler", "label": "PROFILER", "status": "COMPLETED"},
+    {"id": "translator", "label": "TRANSLATOR", "status": "COMPLETED"},
+    {"id": "validator", "label": "VALIDATOR", "status": "COMPLETED"},
+    {"id": "gate", "label": "APPROVAL GATE", "status": "HALTED"},
+    {"id": "fixer", "label": "FIXER", "status": "IDLE"},
+    {"id": "steward", "label": "STEWARD", "status": "IDLE"}
+  ]
+}

@@ -10,7 +10,7 @@
 | Metric | Source Value | Target Value | Divergence | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | `duplicate_index_parity` | `0` | `0` | `0.0` | PASSED |
-| `null_distribution_cust_state_cd_tx` | `0.0` | `0.0` | `0.0` | PASSED |
+| `null_distribution_cust_comm_eml_addr_tx` | `0.0` | `0.0` | `0.0` | PASSED |
 | `deduplicated_cardinality_balance` | `5` | `5` | `0.0` | PASSED |
 
 ## 3. Unity Catalog Governance Tags

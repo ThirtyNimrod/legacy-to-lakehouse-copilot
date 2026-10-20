@@ -1,0 +1,203 @@
+@import '@fontsource/space-grotesk/300.css';
+@import '@fontsource/space-grotesk/400.css';
+@import '@fontsource/space-grotesk/500.css';
+@import '@fontsource/space-grotesk/700.css';
+@import '@fontsource/space-mono/400.css';
+@import '@fontsource/space-mono/700.css';
+
+:root {
+  /* DARK MODE: OLED Black */
+  --black: #000000;
+  --surface: #111111;
+  --surface-raised: #1A1A1A;
+  --border: #222222;
+  --border-visible: #333333;
+
+  --text-disabled: #777777;
+  --text-secondary: #999999;
+  --text-primary: #E8E8E8;
+  --text-display: #FFFFFF;
+
+  --accent-red: #D71921;       /* Breaches and failures only */
+  --accent-subtle: rgba(215, 25, 33, 0.12);
+  --success-green: #4A9E5C;    /* Values only, never backgrounds */
+  --amber-warning: #D4A843;    /* Retry in progress */
+  --interactive-blue: #5B9BF6;
+
+  /* Font Families */
+  --font-body: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-display: 'Space Grotesk', monospace;
+
+  /* Spacing */
+  --space-2xs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  --grid-dot: #222222;
+}
+
+[data-theme='light'] {
+  /* LIGHT MODE: Technical Warm Paper */
+  --black: #F5F5F5;
+  --surface: #FFFFFF;
+  --surface-raised: #EEEEEE;
+  --border: #E0E0E0;
+  --border-visible: #CCCCCC;
+
+  --text-disabled: #888888;
+  --text-secondary: #555555;
+  --text-primary: #1A1A1A;
+  --text-display: #000000;
+
+  --accent-red: #D71921;
+  --accent-subtle: rgba(215, 25, 33, 0.08);
+  --success-green: #2F7C3E;
+  --amber-warning: #B38622;
+  --interactive-blue: #007AFF;
+
+  --grid-dot: #DDDDDD;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--black);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dot-grid {
+  background-image: radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Monospace Instrument Labels */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+/* Hero Counter (One Per Screen in ui-2.md) */
+.hero-counter {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-display);
+}
+
+/* Pill Buttons (Nothing Standard) */
+.btn-pill {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  min-height: 40px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  transition: opacity 0.15s ease-out, border-color 0.15s ease-out;
+  text-decoration: none;
+}
+
+.btn-pill:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--text-display);
+  color: var(--black);
+  border: none;
+}
+
+.btn-primary:not(:disabled):hover {
+  opacity: 0.88;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-visible);
+}
+
+.btn-secondary:not(:disabled):hover {
+  border-color: var(--text-display);
+}
+
+.btn-destructive {
+  background-color: transparent;
+  color: var(--accent-red);
+  border: 1px solid var(--accent-red);
+}
+
+.btn-destructive:not(:disabled):hover {
+  background-color: var(--accent-subtle);
+}
+
+/* Flat Badges / Tags */
+.badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--border-visible);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-inverted {
+  background-color: var(--text-display);
+  color: var(--black);
+  font-weight: 700;
+  border: none;
+}
+
+.badge-amber {
+  border-color: var(--amber-warning);
+  color: var(--amber-warning);
+}
+
+.badge-red {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+.badge-green {
+  border-color: var(--success-green);
+  color: var(--success-green);
+}
+
+/* Pulse only for RUNNING state */
+.pulse-running {
+  animation: pulse-dot 1s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.9); }
+}

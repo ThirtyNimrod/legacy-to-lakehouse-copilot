@@ -30,8 +30,7 @@ ENV/
 # Databases & Checkpoints
 *.duckdb
 *.duckdb.wal
-checkpoints.db
-checkpoints.db-journal
+checkpoints.db*
 data/legacy/*.duckdb
 data/medallion/*.duckdb
 

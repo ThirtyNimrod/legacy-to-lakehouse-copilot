@@ -1,0 +1,162 @@
+{
+  "thread_id": "thread_payments_03",
+  "run_id": "run_07",
+  "current_table": "raw_order_payments",
+  "target_environment": "LOCAL · DUCKDB",
+  "model_name": "llama3.2 (ollama)",
+  "staging_entity": "staging.silver_raw_order_payments",
+  "target_entity": "silver.raw_order_payments",
+  "status": "FAILED_CLOSED",
+  "repair_summary": "Retry budget exhausted (3 of 3 attempts failed)",
+  "fix_attempts": 3,
+  "max_retries": 3,
+  "checks": [
+    {
+      "name": "numeric_epsilon_amount_unscaled",
+      "description": "Floating point currency sums match legacy unscaled currency amounts",
+      "source_value": "452,109.8442",
+      "target_value": "452,109.8300",
+      "tolerance": 1e-6,
+      "divergence": 0.0142,
+      "status": "FAIL",
+      "error_message": "Cumulative numeric divergence 0.0142 exceeds epsilon tolerance 1e-06. Truncation detected."
+    },
+    {
+      "name": "dedup_cardinality",
+      "description": "Unique row count matches deduplicated legacy primary keys",
+      "source_value": 2500,
+      "target_value": 2500,
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "duplicate_pk_count",
+      "description": "Zero duplicate occurrences on payment_id",
+      "source_value": 0,
+      "target_value": 0,
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "null_ratio_payment_method",
+      "description": "Null frequency preservation on payment method type",
+      "source_value": "0.00%",
+      "target_value": "0.00%",
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    },
+    {
+      "name": "currency_code_iso",
+      "description": "ISO 4217 currency codes validated against standard lookup",
+      "source_value": "USD, EUR, GBP",
+      "target_value": "USD, EUR, GBP",
+      "tolerance": 0.0,
+      "divergence": 0.0,
+      "status": "PASS",
+      "error_message": null
+    }
+  ],
+  "column_treatments": [
+    {
+      "source_col": "payment_id",
+      "target_col": "payment_id",
+      "source_type": "NUMBER(12)",
+      "target_type": "BIGINT",
+      "is_sensitive": false,
+      "sensitivity_type": null,
+      "treatment": "keep",
+      "ai_suggested": false,
+      "sample_before": ["9001", "9002", "9003"],
+      "sample_after": ["9001", "9002", "9003"]
+    },
+    {
+      "source_col": "payment_amount_flt",
+      "target_col": "payment_amount",
+      "source_type": "DOUBLE PRECISION",
+      "target_type": "DECIMAL(18,2)",
+      "is_sensitive": false,
+      "sensitivity_type": "FINANCIAL",
+      "treatment": "keep",
+      "ai_suggested": true,
+      "sample_before": ["19.9942", "45.0000", "120.4500"],
+      "sample_after": ["19.99", "45.00", "120.45"]
+    }
+  ],
+  "provenance": [
+    {
+      "statement_index": 1,
+      "statement_sql": "SELECT payment_id, CAST(payment_amount_flt AS DECIMAL(18,2)) FROM raw_order_payments",
+      "pyspark_equivalent": "silver_df = bronze_df.withColumn('payment_amount', F.col('payment_amount_flt').cast('decimal(18,2)'))",
+      "provenance": "RULE"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_number": 1,
+      "timestamp": "2026-10-11T01:20:00Z",
+      "diagnosis": "Unscaled float rounding in legacy Oracle warehouse requires ROUND(col, 2) prior to decimal cast.",
+      "patch_diff": "- F.col('payment_amount_flt').cast('decimal(18,2)')\n+ F.round(F.col('payment_amount_flt'), 2).cast('decimal(18,2)')",
+      "failed_checks": ["numeric_epsilon_amount_unscaled"],
+      "result_status": "FAILED"
+    },
+    {
+      "attempt_number": 2,
+      "timestamp": "2026-10-11T01:21:15Z",
+      "diagnosis": "Rounding mode divergence between bankers rounding and round-half-up.",
+      "patch_diff": "- F.round(F.col('payment_amount_flt'), 2)\n+ F.bround(F.col('payment_amount_flt'), 2)",
+      "failed_checks": ["numeric_epsilon_amount_unscaled"],
+      "result_status": "FAILED"
+    },
+    {
+      "attempt_number": 3,
+      "timestamp": "2026-10-11T01:22:40Z",
+      "diagnosis": "Legacy warehouse stored currency in unscaled integer cents under string representation.",
+      "patch_diff": "- F.bround(F.col('payment_amount_flt'), 2)\n+ (F.col('payment_amount_flt') / 100.0).cast('decimal(18,2)')",
+      "failed_checks": ["numeric_epsilon_amount_unscaled"],
+      "result_status": "FAILED"
+    }
+  ],
+  "telemetry": [
+    {
+      "node_name": "profiler",
+      "duration_ms": 1100.0,
+      "model_name": "llama3.2 (ollama)",
+      "tokens_input": 720,
+      "tokens_output": 240,
+      "prompt": "Profile raw_order_payments",
+      "response": "Identified float currency columns."
+    },
+    {
+      "node_name": "validator",
+      "duration_ms": 820.0,
+      "model_name": "deterministic_engine",
+      "tokens_input": 0,
+      "tokens_output": 0,
+      "prompt": null,
+      "response": "4 of 5 checks pass. numeric_epsilon_amount_unscaled failed."
+    },
+    {
+      "node_name": "fixer",
+      "duration_ms": 1620.0,
+      "model_name": "llama3.2 (ollama)",
+      "tokens_input": 1250,
+      "tokens_output": 490,
+      "prompt": "Fix float drift attempt 3",
+      "response": "Maximum retry limit reached."
+    }
+  ],
+  "graph_nodes": [
+    {"id": "profiler", "label": "PROFILER", "status": "COMPLETED"},
+    {"id": "translator", "label": "TRANSLATOR", "status": "COMPLETED"},
+    {"id": "validator", "label": "VALIDATOR", "status": "COMPLETED"},
+    {"id": "gate", "label": "APPROVAL GATE", "status": "HALTED"},
+    {"id": "fixer", "label": "FIXER", "status": "FAILED"},
+    {"id": "steward", "label": "STEWARD", "status": "IDLE"}
+  ]
+}
